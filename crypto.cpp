@@ -12,8 +12,6 @@ unsigned char iv[16];
 
 void generateIV()
 {
-// Generate a cryptographically secure random IV
-
     if (RAND_bytes(iv,sizeof(iv)) != 1)
     {
         cout<<"IV generation failed"<<endl;
@@ -27,13 +25,8 @@ void generateIV()
     }
     cout << dec << endl;
 }
-
-// Generate a random 16-byte salt for PBKDF2
-
 void generateSalt(unsigned char salt[16]) 
 {
-// Generate a cryptographically secure random salt
-
     if (RAND_bytes(salt, 16) != 1) 
     {
         cout << "Salt generation failed!" << endl;
