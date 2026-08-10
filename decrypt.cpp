@@ -7,8 +7,6 @@
 #include "crypto.h"
 #include"pbkdf2.h"
 
-// Define the custom AegisVault file header and file format version
-
 const char FILE_HEADER[] = "AEGISVAULT";
 const unsigned char VERSION = 2;
 
@@ -26,11 +24,6 @@ void decryptFile()
 
     string password;
 
-// Declare cryptographic variables required for decryption
-// key  : Stores the AES-256 encryption key (32 bytes)
-// salt : Stores the random salt used for PBKDF2 (16 bytes)
-// iv   : Stores the AES Initialization Vector (16 bytes)
-
     unsigned char key[32];
     unsigned char salt[16];
     unsigned char iv[16];
@@ -41,14 +34,10 @@ void decryptFile()
     unsigned char extensionLength;
     string extension;
 
-// Take the decryption password from the user
-
     cout << "Enter password : ";
     cin >> password;
 
     int ciphertext_len = 0;
-
-// Open the encrypted .aegis file    
 
     ifstream inputFile("Output/encrypted.aegis", ios::binary);
     if (!inputFile)
@@ -56,8 +45,6 @@ void decryptFile()
         cout << "Encrypted file not found in the Output folder!" << endl;
         return;
     }
-
-// Read the file header, version, and original file extension
 
     inputFile.read(header, sizeof(FILE_HEADER));
     inputFile.read((char*)&version, sizeof(version));
@@ -69,8 +56,6 @@ void decryptFile()
     inputFile.read(extensionBuffer, extensionLength);
 
     extension.assign(extensionBuffer, extensionLength);
-
-// Verify that the file is a valid AegisVault encrypted file
 
     if (strcmp(header, FILE_HEADER) != 0)
     {
@@ -88,12 +73,8 @@ void decryptFile()
         return;
     }
 
-// Read the salt and Initialization Vector (IV)
-
     inputFile.read((char*)salt, 16);
     inputFile.read((char*)iv, 16);
-
-// Calculate the size of the encrypted ciphertext
 
     inputFile.seekg(0, ios::end);
     streamsize remainingSize = inputFile.tellg();
@@ -107,11 +88,7 @@ void decryptFile()
     inputFile.read((char*)ciphertext.data(), ciphertext_len);
     inputFile.close();
 
-// Derive the AES-256 key from the password using PBKDF2
-
     derivekey(password, salt, key);
-
-// Create the OpenSSL decryption context
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
 
@@ -121,16 +98,12 @@ void decryptFile()
         return;
     }
 
-// Initialize AES-256-CBC decryption
-
     if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv) != 1)
     {
         cout<<"Failed to initialize decryption!"<<endl;
         EVP_CIPHER_CTX_free(ctx);
         return;
     }
-
-// Decrypt the ciphertext into plaintext    
 
     vector<unsigned char> plaintext(ciphertext_len + EVP_MAX_BLOCK_LENGTH);
     int plaintext_len = 0;
@@ -155,8 +128,6 @@ void decryptFile()
         return;
     }
     plaintext_len += final_len;
-    
-// Save the decrypted file using its original extension
 
     ofstream outFile("Output/decrypted." + extension, ios::binary);
     if (!outFile)
@@ -167,8 +138,6 @@ void decryptFile()
     }
     outFile.write((char*)plaintext.data(), plaintext_len);
     outFile.close();
-
-// Release the OpenSSL decryption context
 
     EVP_CIPHER_CTX_free(ctx);
     cout<<endl;
