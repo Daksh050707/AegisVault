@@ -21,8 +21,6 @@ void encryptFile()
 
     cout<<endl;
 
-// Declare all variables required for encryption
-
     string filename;
     string extension;
     string content;
@@ -31,11 +29,8 @@ void encryptFile()
     unsigned char key[32];
     unsigned char salt[16];
 
-// Take filename from the user
     cout<<"Enter your file name with extension : ";
     cin>>filename;
-
- // Extract the file extension
 
     size_t dotPos = filename.find_last_of('.');
     if (dotPos == string::npos)
@@ -45,12 +40,8 @@ void encryptFile()
     }
     extension = filename.substr(dotPos+1);
 
-// Take the password from the user
-
     cout<<"Enter your password : ";
     cin>>password;
-
-// This step is to open and read the input file
 
     ifstream file("Input/"+ filename, ios::binary);
     if(!file)
@@ -62,16 +53,10 @@ void encryptFile()
     content.assign((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>()));   
     file.close();
 
-// Generate salt and derive AES-256 key using PBKDF2
-
     generateSalt(salt);
     derivekey(password, salt, key);
 
-// Generate a random Initialization Vector (IV)
-
     generateIV();
-
-// Create the OpenSSL encryption context
 
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 
@@ -81,16 +66,12 @@ void encryptFile()
     return;
     }
 
-// Initialize AES-256-CBC encryption
-
     if(EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key, iv) != 1)
     {
         cout<<"Encryption initialization failed!"<<endl;
         EVP_CIPHER_CTX_free(ctx);
         return;
     }
-
-// Encrypt the file contents
     vector<unsigned char> ciphertext(content.size() + EVP_MAX_BLOCK_LENGTH);
     int ciphertext_len = 0;
     if(EVP_EncryptUpdate(ctx, ciphertext.data(), &ciphertext_len, (unsigned char*)content.data(), content.size()) != 1)
@@ -114,8 +95,7 @@ void encryptFile()
     EVP_CIPHER_CTX_free(ctx);
     return;
     }
-
-// Save encrypted data into .aegis file
+    
     outFile.write(FILE_HEADER, sizeof(FILE_HEADER));
     outFile.write((char*)&VERSION, sizeof(VERSION));
 
@@ -130,8 +110,6 @@ void encryptFile()
     outFile.write((char*)ciphertext.data(), ciphertext_len);
 
     outFile.close();
-
-// Release the OpenSSL encryption context
 
     EVP_CIPHER_CTX_free(ctx);
     cout<<endl;
