@@ -6,8 +6,6 @@
 
 using namespace std;
 
-// Declare the global Initialization Vector (IV)
-
 unsigned char iv[16];
 
 void generateIV()
